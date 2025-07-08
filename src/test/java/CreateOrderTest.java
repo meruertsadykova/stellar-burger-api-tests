@@ -7,6 +7,7 @@ import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import models.Order;
+import org.apache.http.HttpStatus;
 
 import org.junit.runners.Parameterized;
 import methods.OrderRequests;
@@ -14,7 +15,6 @@ import methods.OrderRequests;
 import java.util.ArrayList;
 import java.util.List;
 
-import static constants.ApiConstants.BURGERS_URL;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -34,10 +34,10 @@ public class CreateOrderTest {
     @Parameterized.Parameters(name = "Создание заказа с ингредиентами от {0} до {1}, ожидаемый код: {2}")
     public static Object[][] getData() {
         return new Object[][]{
-                {0, 1, 200},
-                {0, 6, 200},
-                {10, 15, 200},
-                {0, 0, 400},
+                {0, 1, HttpStatus.SC_OK},
+                {0, 6, HttpStatus.SC_OK},
+                {10, 15, HttpStatus.SC_OK},
+                {0, 0, HttpStatus.SC_BAD_REQUEST},
         };
     }
 
@@ -52,17 +52,17 @@ public class CreateOrderTest {
     @Description("Проверяется успешное создание заказа с валидными ингредиентами и ошибка при отсутствии ингредиентов")
     public void createOrder() {
         Response responseGetIngredient = orderRequests.getIngredient();
-        List<String> ingredients = new ArrayList<>(responseGetIngredient.then().log().all().statusCode(200).extract().path("data._id"));
+        List<String> ingredients = new ArrayList<>(responseGetIngredient.then().log().all().statusCode(HttpStatus.SC_OK).extract().path("data._id"));
 
         Order order = new Order(ingredients.subList(fromIndex, toIndex));
         Response responseCreate = orderRequests.createOrder(order);
 
-        if (statusCode == 200) {
+        if (statusCode == HttpStatus.SC_OK) {
             responseCreate.then().log().all()
                     .assertThat()
                     .body("order.number", notNullValue())
                     .body("success", equalTo(true));
-        } else if (statusCode == 400) {
+        } else if (statusCode == HttpStatus.SC_BAD_REQUEST) {
             responseCreate.then().log().all()
                     .assertThat()
                     .body("success", equalTo(false))

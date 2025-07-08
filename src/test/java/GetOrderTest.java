@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import methods.OrderRequests;
 import methods.UserRequests;
+import org.apache.http.HttpStatus;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
@@ -58,7 +59,7 @@ public class GetOrderTest {
     public void getOrderTest() {
         Response responseGetOrder = orderRequests.getOrderUser(accessToken);
         responseGetOrder.then().log().all()
-                .statusCode(200)
+                .statusCode(HttpStatus.SC_OK)
                 .body("success", equalTo(true))
                 .body("orders.total", notNullValue());
     }
@@ -69,7 +70,7 @@ public class GetOrderTest {
     public void getOrderWithoutAuthorization() {
         Response response = orderRequests.getOrderUserWithoutAuthorization();
         response.then().log().all()
-                .statusCode(401)
+                .statusCode(HttpStatus.SC_UNAUTHORIZED)
                 .body("success", equalTo(false))
                 .body("message", equalTo("You should be authorised"));
     }
@@ -79,7 +80,7 @@ public class GetOrderTest {
         if (accessToken != null) {
             Response responseDelete = userRequests.deleteUser(accessToken);
             responseDelete.then().log().all()
-                    .statusCode(202)
+                    .statusCode(HttpStatus.SC_ACCEPTED)
                     .body("success", equalTo(true));
         }
     }

@@ -12,6 +12,7 @@ import models.User;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import methods.UserRequests;
+import org.apache.http.HttpStatus;
 
 import static org.hamcrest.Matchers.equalTo;
 
@@ -53,7 +54,7 @@ public class CreateUserTest {
             "После успешного создания проверяется, что возвращается статус 200 и success=true.")
     public void createUser() {
         Response responseCreate = userRequests.createUser(user);
-        responseCreate.then().statusCode(200).body("success", equalTo(true));
+        responseCreate.then().statusCode(HttpStatus.SC_OK).body("success", equalTo(true));
     }
 
     @After
@@ -66,7 +67,7 @@ public class CreateUserTest {
 
             if (accessToken != null) {
                 Response responseDelete = userRequests.deleteUser(accessToken);
-                responseDelete.then().statusCode(202).body("success", equalTo(true));
+                responseDelete.then().statusCode(HttpStatus.SC_ACCEPTED).body("success", equalTo(true));
             }
         } catch (Exception e) {
             System.out.println("Не удалось удалить пользователя: " + e.getMessage());

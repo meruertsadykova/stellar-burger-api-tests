@@ -11,6 +11,7 @@ import models.User;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import methods.UserRequests;
+import org.apache.http.HttpStatus;
 
 import static constants.ApiConstants.BURGERS_URL;
 import static org.hamcrest.Matchers.equalTo;
@@ -54,7 +55,7 @@ public class LoginTest {
         userRequests = new UserRequests();
 
         Response responseCreate = userRequests.createUser(user);
-        accessToken = responseCreate.then().log().all().statusCode(200).extract().path("accessToken");
+        accessToken = responseCreate.then().log().all().statusCode(HttpStatus.SC_OK).extract().path("accessToken");
 
         login = isValidLogin ? new Login(email, password) : new Login(email, wrongPassword);
     }
@@ -67,11 +68,11 @@ public class LoginTest {
 
         if (isValidLogin) {
             responseLogin.then().log().all()
-                    .statusCode(200)
+                    .statusCode(HttpStatus.SC_OK)
                     .body("success", equalTo(true));
         } else {
             responseLogin.then().log().all()
-                    .statusCode(401)
+                    .statusCode(HttpStatus.SC_UNAUTHORIZED)
                     .body("success", equalTo(false))
                     .body("message", equalTo("email or password are incorrect"));
         }
@@ -81,8 +82,7 @@ public class LoginTest {
     public void deleteUser() {
         if (accessToken != null) {
             Response responseDelete = userRequests.deleteUser(accessToken);
-            responseDelete.then().log().all().statusCode(202).body("success", equalTo(true));
+            responseDelete.then().log().all().statusCode(HttpStatus.SC_ACCEPTED).body("success", equalTo(true));
         }
     }
 }
-

@@ -11,6 +11,7 @@ import models.User;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import methods.UserRequests;
+import org.apache.http.HttpStatus;
 
 import static org.hamcrest.Matchers.equalTo;
 
@@ -41,10 +42,10 @@ public class CreateInvalidUserTest {
     public static Object[][] getData() {
         Faker faker = new Faker();
         return new Object[][]{
-                {null, faker.internet().password(), faker.name().firstName(), 403, false, "Email, password and name are required fields"},
-                {faker.internet().emailAddress(), null, faker.name().firstName(), 403, false, "Email, password and name are required fields"},
-                {faker.internet().emailAddress(), faker.internet().password(), null, 403, false, "Email, password and name are required fields"},
-                {faker.internet().emailAddress(), faker.internet().password(), faker.name().firstName(), 200, true, null}
+                {null, faker.internet().password(), faker.name().firstName(), HttpStatus.SC_FORBIDDEN, false, "Email, password and name are required fields"},
+                {faker.internet().emailAddress(), null, faker.name().firstName(), HttpStatus.SC_FORBIDDEN, false, "Email, password and name are required fields"},
+                {faker.internet().emailAddress(), faker.internet().password(), null, HttpStatus.SC_FORBIDDEN, false, "Email, password and name are required fields"},
+                {faker.internet().emailAddress(), faker.internet().password(), faker.name().firstName(), HttpStatus.SC_OK, true, null}
         };
     }
 
@@ -67,12 +68,12 @@ public class CreateInvalidUserTest {
                 .body("success", equalTo(success))
                 .body("message", equalTo(message));
 
-        if (responseCreate.statusCode() == 200) {
+        if (responseCreate.statusCode() == HttpStatus.SC_OK) {
             accessToken = responseCreate.then().extract().path("accessToken");
             Response responseCreateDouble = userRequests.createUser(user);
             responseCreateDouble.then()
                     .log().all()
-                    .statusCode(403)
+                    .statusCode(HttpStatus.SC_FORBIDDEN)
                     .body("success", equalTo(false))
                     .body("message", equalTo("User already exists"));
         }
@@ -80,7 +81,7 @@ public class CreateInvalidUserTest {
 
     @After
     public void deleteUser() {
-        if (statusCode == 200 && accessToken != null) {
+        if (statusCode == HttpStatus.SC_OK && accessToken != null) {
             userRequests.deleteUser(accessToken);
         }
     }
